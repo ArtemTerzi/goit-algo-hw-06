@@ -110,55 +110,57 @@ transfers = [
 for a, b in transfers:
     G.add_edge(a, b, color="black", weight=5)
 
-def bfs_path(graph, start, goal):
-    visited = set()
-    queue = deque([[start]])
 
-    while queue:
-        path = queue.popleft()
-        node = path[-1]
-        if node == goal:
-            return path
-        elif node not in visited:
-            for neighbor in graph.neighbors(node):
-                new_path = list(path)
-                new_path.append(neighbor)
-                queue.append(new_path)
-            visited.add(node)
-    return None
+def convert_nx_to_dict(G):
+    graph_dict = {}
+    for node in G.nodes:
+        neighbors = {}
+        for neighbor in G.neighbors(node):
+            weight = G.edges[node, neighbor]['weight']
+            neighbors[neighbor] = weight
+        graph_dict[node] = neighbors
+    return graph_dict
+
+graph_dict = convert_nx_to_dict(G)
+
+def print_table(distances, visited):
+    print("{:<10} {:<10} {:<10}".format("Вершина", "Відстань", "Перевірено"))
+    print("-" * 30)
+
+    for vertex in distances:
+        distance = distances[vertex]
+        if distance == float('infinity'):
+            distance = "∞"
+        else:
+            distance = str(distance)
+        
+        status = "Так" if vertex in visited else "Ні"
+        print("{:<10} {:<10} {:<10}".format(vertex, distance, status))
+    print("\\n")
 
 
-def dfs_path(graph, start, goal):
-    visited = set()
-    stack = [[start]]
 
-    while stack:
-        path = stack.pop()
-        node = path[-1]
-        if node == goal:
-            return path
-        elif node not in visited:
-            for neighbor in graph.neighbors(node):
-                new_path = list(path)
-                new_path.append(neighbor)
-                stack.append(new_path)
-            visited.add(node)
-    return None
+def dijkstra(graph, start):
+    distances = {vertex: float('infinity') for vertex in graph}
+    distances[start] = 0
+    unvisited = list(graph.keys())
+    visited = []
 
-start_station = "Академмістечко"
-end_station = "Червоний хутір"
+    while unvisited:
+        current_vertex = min(unvisited, key=lambda vertex: distances[vertex])
 
-path_bfs = bfs_path(G, start_station, end_station)
-path_dfs = dfs_path(G, start_station, end_station)
+        if distances[current_vertex] == float('infinity'):
+            break
 
-print(f"\nШлях BFS від {start_station} до {end_station}:")
-print(" → ".join(path_bfs))
-print(f"Довжина шляху BFS: {len(path_bfs)-1}")
+        for neighbor, weight in graph[current_vertex].items():
+            distance = distances[current_vertex] + weight
+            if distance < distances[neighbor]:
+                distances[neighbor] = distance
 
-print(f"\nШлях DFS від {start_station} до {end_station}:")
-print(" → ".join(path_dfs))
-print(f"Довжина шляху DFS: {len(path_dfs)-1}")
+        visited.append(current_vertex)
+        unvisited.remove(current_vertex)
+        print_table(distances, visited)
 
-print(f'Цікава ситуація, DFS і BFS знайшли шлях із 22 кроків, \
-      але це не означає, що вони однаково працюють — але в даному конкретному графі так співпало.')
-print('Висновок: 22 — це мінімально можливий шлях, тобто BFS зробив свою справу. А DFS випадково пішов «правильним» шляхом, який теж має 22 кроки.')
+    return distances
+
+dijkstra(graph_dict, "Академмістечко")
