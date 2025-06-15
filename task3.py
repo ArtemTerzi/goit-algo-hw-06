@@ -136,7 +136,7 @@ def print_table(distances, visited):
         
         status = "Так" if vertex in visited else "Ні"
         print("{:<10} {:<10} {:<10}".format(vertex, distance, status))
-    print("\\n")
+    print("\n")
 
 
 
